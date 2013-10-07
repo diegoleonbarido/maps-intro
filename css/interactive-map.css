@@ -1,0 +1,24 @@
+<style>
+
+body {
+  
+  font-family:Helvetica;
+  
+}
+
+/* Makes the space between counties with a little grey line */
+.county{
+  fill: grey;
+  stroke: white;
+}
+
+/* When you hover it makes things black*/
+/* You don't even have to do anything else. As long as county is defined it will hover over it */
+.county:hover {
+   stroke:black;
+}
+
+svg {
+  border: solid 1px white;
+}
+</style>

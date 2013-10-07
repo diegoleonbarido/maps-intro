@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+ 
+	 <head>
+ 		<meta charset="utf-8">
+ 		<title>An Interactive Map of Hispanics in Cal</title>
+ 	 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+ 	 <script src="http://d3js.org/queue.v1.min.js"></script>
+ 	 <script src="http://d3js.org/topojson.v1.min.js"></script>
+ 		<link rel="stylesheet" type="text/css" href="/css/interactive-map.css">
+ 		
+ 		<h1> Slider Map </h1>
+ 		<h2 = class = "year"></h2>
+ 		<div class = "slider"></div>
+ 		
+ 	</head>
+	 
+<body>
+
+  
+  <script type = "text/javascript">
+  
+  var margin = {top: 20, right: 20, bottom: 20, left: 20};
+      width = 2500 - margin.left - margin.right,
+      height = 700 - margin.top - margin.bottom;
+
+  var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+  // We use queue when we're trying to load two different files 
+  queue()
+        .defer(d3.tsv, "merged-multirace.txt") //This is tab separated file
+        .defer(d3.json, "ca-counties.json")
+        .await(function(error,data,ca){  //change line 51
+          
+          data.forEach(function(d){  //change line 53
+            d.year = + d.year; //Making sure that the numbers are numbers and not strings
+            d.fips = +d.fips; //Turning the string into a number
+            d.fipsLeadingZero =  "0" + d.fips; //Making sure that the data is the same so we can merge
+            d.pcthispanic = +d.pcthispanic; //Turning the string into a number          
+          });
+          
+        //Choosing a year to do our analysis. Making it 2020. If we're doing the slide we don't need this piece of code. 
+        data = data.filter(function(d){
+                  return (d.year == 2020)
+                });
+
+        //Making the variable counties
+        var counties = topojson.feature(ca, ca.objects.counties);
+        
+        counties.features.forEach(function(county){
+          data.forEach(function(dataRow){
+            
+            if (dataRow.fipsLeadingZero === county.id) {
+              county.merged = dataRow;
+                  }
+          })
+          
+        });
+        
+         // console.log(counties)
+        // To draw a map we need a map projection
+        //We first had marcedor then we changed to albers
+        var projection = d3.geo.albers()
+        //Moving into the center
+        .translate([(width / 2) - 200, height / 2])
+        .parallels([34, 40.5])
+        .rotate([120,0])
+        .scale(3000);
+        // Take the map projection and create the code to map it in your page
+        var path = d3.geo.path().projection(projection);
+          
+        // Data join  
+        svg.selectAll(".county")
+          .data(counties.features)
+        .enter().append("path")
+          .attr("class","county")
+          .attr("d", path)
+        .style("fill",function(d){
+          
+          var value = d.merged.pcthispanic;
+          if (value >0.5){
+            return "#990";
+          }
+          if (value > 0.3){
+            return "#660";
+          }
+          if (value > 0.1){
+            return "#330";
+          }
+          else{
+          return "#000"
+          }
+          
+          
+        });
+          
+        // console.log(counties,data)
+        
+          
+          
+          
+        }); // End of Await
+  
+  </script>
+
+</body>
+</html>
